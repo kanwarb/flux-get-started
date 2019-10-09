@@ -13,7 +13,6 @@ metadata:
 spec:
   strategy:
     rollingUpdate:
-      minAvailable: 1
       maxUnavailable: 0
     type: RollingUpdate
   selector:
@@ -34,7 +33,7 @@ spec:
         - "1"
       containers:
       - name: podinfod
-        image: stefanprodan/podinfo:3.0.0
+        image: stefanprodan/podinfo:3.1.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9898
