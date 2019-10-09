@@ -3,14 +3,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: podinfo
-  namespace: demo
+  namespace: test
   labels:
     app: podinfo
-  annotations:
-    flux.weave.works/automated: "true"
-    flux.weave.works/tag.init: regex:^3.10.*
-    flux.weave.works/tag.podinfod: semver:~3.0
 spec:
+  replicas: 1
   strategy:
     rollingUpdate:
       maxUnavailable: 0
@@ -25,15 +22,9 @@ spec:
       labels:
         app: podinfo
     spec:
-      initContainers:
-      - name: init
-        image: alpine:3.10
-        command:
-        - sleep
-        - "1"
       containers:
       - name: podinfod
-        image: stefanprodan/podinfo:3.0.5
+        image: quay.io/stefanprodan/podinfo:3.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9898
@@ -46,20 +37,34 @@ spec:
         - --random-delay=false
         - --random-error=false
         env:
-        - name: PODINFO_UI_MESSAGE
-          value: "Greetings human!"
+        - name: PODINFO_UI_COLOR
+          value: green
         livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 9898
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/healthz
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
         readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 9898
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/readyz
+          failureThreshold: 3
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 2
         resources:
           limits:
             cpu: 1000m
-            memory: 128Mi
+            memory: 256Mi
           requests:
-            cpu: 10m
-            memory: 64Mi
+            cpu: 100m
+            memory: 16Mi
